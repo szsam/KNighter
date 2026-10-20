@@ -7,6 +7,7 @@ import yaml
 
 from backends.csa import ClangBackend
 from backends.factory import AnalysisBackendFactory
+from targets.edk2 import EDK2
 from targets.factory import TargetFactory
 from targets.linux import Linux
 from targets.v8 import V8
@@ -52,7 +53,12 @@ class GlobalConfig:
         if "linux_dir" in self._config:
             self._config["linux"] = Linux(self.get("linux_dir"))
 
-        if target_type == "v8":
+        if "edk2_dir" in self._config:
+            self._config["edk2"] = EDK2(self.get("edk2_dir"), self.get("edk2_trees_dir"))
+
+        if target_type == "edk2":
+            self._config["target"] = self._config["edk2"]
+        elif target_type == "v8":
             self._config["target"] = self._config["v8"]
         else:
             self._config["target"] = self._config["linux"]

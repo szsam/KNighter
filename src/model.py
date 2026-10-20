@@ -36,7 +36,9 @@ def init_llm():
     # Initialize local/custom OpenAI-compatible client
     if "base_url" in keys:
         clients["local"] = OpenAI(
-            base_url=keys["base_url"], api_key=keys.get("api_key", "dummy")
+            base_url=keys["base_url"],
+            api_key=keys.get("api_key", "dummy"),
+            timeout=keys.get("timeout", 600),
         )
 
     # Initialize Claude client

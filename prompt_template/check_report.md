@@ -1,6 +1,6 @@
 # Instruction
 
-Determine whether the static analyzer report is a real bug in the Linux kernel and matches the target bug pattern
+Determine whether the static analyzer report is a real bug in EDK2 (the TianoCore UEFI firmware) and matches the target bug pattern
 
 Your analysis should:
 - **Compare the report against the provided target bug pattern specification,** using the **buggy function (pre-patch)** and the **fix patch** as the reference.
@@ -23,7 +23,7 @@ Please evaluate thoroughly using the following process:
   1. **Identify the pointer source** and return convention of the producing function(s) in this path (e.g., returns **NULL**, **ERR_PTR**, negative error code via cast, or never-null).
   2. **Check real-world feasibility in this specific driver/socket/filesystem/etc.**:
      - Enumerate concrete conditions under which the producer can return **NULL/ERR_PTR** here (e.g., missing DT/ACPI property, absent PCI device/function, probe ordering, hotplug/race, Kconfig options, chip revision/quirks).
-     - Verify whether those conditions can occur given the driver’s init/probe sequence and the kernel helpers used.
+     - Verify whether those conditions can occur given the driver’s initialization sequence and the EDK2 library functions used.
   3. **Lifetime & concurrency**: consider teardown paths, RCU usage, refcounting (`get/put`), and whether the pointer can become invalid/NULL across yields or callbacks.
   4. If the producer is provably non-NULL in this context (by spec or preceding checks), classify as **false positive**.
 

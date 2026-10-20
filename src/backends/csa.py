@@ -16,6 +16,7 @@ from typing import List, Optional, Tuple
 from html2text import html2text
 from loguru import logger
 
+from backends import csa_edk2
 from backends.factory import AnalysisBackendFactory
 from checker_data import ReportData
 from targets.factory import TargetFactory
@@ -54,7 +55,7 @@ class ClangBackend(AnalysisBackendFactory):
         self,
         checker_code: str,
         log_dir: Path,
-        checker_name="SAGenTest",
+        checker_name=None,
         attempt=1,
         jobs=8,
         timeout=300,
@@ -65,6 +66,8 @@ class ClangBackend(AnalysisBackendFactory):
         Args:
             checker_code (str): The checker code to build.
         """
+        # Parallel workers each build into their own plugin target.
+        checker_name = checker_name or os.environ.get("KNIGHTER_PLUGIN", "SAGenTest")
         # Write the checker code to a file
         checker_file_path = (
             self.backend_path
@@ -426,6 +429,10 @@ extern "C" const char clang_analyzerAPIVersionString[] =
             return self._validate_checker_v8(
                 checker_code, commit_id, patch, target, skip_build_checker
             )
+        elif target._target_type == "edk2":
+            return csa_edk2.validate_checker_edk2(
+                self, checker_code, commit_id, patch, target, skip_build_checker
+            )
         else:
             raise NotImplementedError(
                 f"Validation for target type {target._target_type} is not implemented."
@@ -460,6 +467,19 @@ extern "C" const char clang_analyzerAPIVersionString[] =
 
         if target._target_type == "linux":
             return self._run_checker_linux(
+                checker_code,
+                commit_id,
+                target,
+                object_to_analyze=object_to_analyze,
+                jobs=jobs,
+                output_dir=output_dir,
+                skip_build_checker=skip_build_checker,
+                skip_checkout=skip_checkout,
+                **kwargs,
+            )
+        elif target._target_type == "edk2":
+            return csa_edk2.run_checker_edk2(
+                self,
                 checker_code,
                 commit_id,
                 target,
@@ -2267,6 +2287,8 @@ extern "C" const char clang_analyzerAPIVersionString[] =
         # Filter out non-c files
         matches = [match + ".c" for match in matches]
         matches = [Path(match).absolute().resolve().as_posix() for match in matches]
+        if hasattr(target, "normalize_path"):
+            return [target.normalize_path(match) for match in matches]
         # Delete the prefix linux path
         # FIXME: This could be wrong
         target_path = Path(target.repo.working_dir).absolute().resolve().as_posix()

@@ -1,6 +1,6 @@
 # Instruction
 
-You will be provided with a patch in Linux kernel.
+You will be provided with a patch in EDK2 (the TianoCore UEFI firmware).
 Please analyze the patch and find out the **bug pattern** in this patch.
 A **bug pattern** is the root cause of this bug, meaning that programs with this pattern will have a great possibility of having the same bug.
 Note that the bug pattern should be **general and abstract** enough to identify similar buggy code patterns in other parts of the codebase.
