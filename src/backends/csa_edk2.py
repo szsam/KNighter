@@ -142,6 +142,9 @@ def validate_checker_edk2(backend, checker_code, commit_id, patch, target, skip_
                 continue
             status, n, err = analyze_tu(backend, obj, entry, base / phase)
             logger.info(f"{phase}: {obj} status={status} reports={n}")
+            if status == "timeout":
+                # As in _validate_checker_linux, a timeout fails the attempt
+                raise Exception(f"Analysis Timeout: {obj}")
             if status == "crash":
                 return -2, -2
             if status == "error":
