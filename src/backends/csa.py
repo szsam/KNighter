@@ -2345,7 +2345,7 @@ extern "C" const char clang_analyzerAPIVersionString[] =
         filename_pattern = re.compile(r"File:\| (.+)")
         for report_html in report_html_list[:max_len]:
             html_content = report_html.read_text()
-            md_content = html2text(html_content)
+            md_content = html2text(html_content, bodywidth=0)
             # This is specific to the report format
             md_content = remove_text_section(md_content, html_content)
             filename = filename_pattern.search(md_content)

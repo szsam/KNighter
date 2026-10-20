@@ -53,8 +53,22 @@ def _analyzer_args(plugin_path: str, out_dir: Path) -> List[str]:
     return args
 
 
+def _expand_response_files(argv: List[str], cwd: str) -> List[str]:
+    """Inline @file arguments, which EDK2 uses for long command lines."""
+    out: List[str] = []
+    for a in argv:
+        if a.startswith("@"):
+            path = Path(cwd) / a[1:]
+            if path.is_file():
+                out += _expand_response_files(shlex.split(path.read_text()), cwd)
+                continue
+        out.append(a)
+    return out
+
+
 def translate_command(entry: dict, clang: str) -> List[str]:
     argv = entry.get("arguments") or shlex.split(entry["command"])
+    argv = _expand_response_files(argv, entry["directory"])
     out: List[str] = [clang]
     skip = False
     for a in argv[1:]:
@@ -80,7 +94,8 @@ def analyze_tu(backend, rel: str, entry: dict, out_root: Path, timeout: int = TU
                ) -> Tuple[str, int, Optional[str]]:
     """Analyse one translation unit. Returns (status, num_reports, error)."""
     build_dir = (backend.backend_path / "build").absolute()
-    out_dir = out_root / rel.replace("/", "_")
+    # Absolute: clang runs in the module's build directory.
+    out_dir = (out_root / rel.replace("/", "_")).absolute()
     out_dir.mkdir(parents=True, exist_ok=True)
     cmd = translate_command(entry, str(build_dir / "bin" / "clang"))
     plugin = os.environ.get("KNIGHTER_PLUGIN", "SAGenTest")

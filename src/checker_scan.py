@@ -281,7 +281,7 @@ def collect_reports(commit_report_dir: str, max_num_reports=100) -> tuple[dict, 
             continue
 
         html_content = report_file.read_text()
-        md_content = html2text(html_content)
+        md_content = html2text(html_content, bodywidth=0)
         md_content = remove_text_section(md_content, html_content)
 
         # Extract filename from the title tag
